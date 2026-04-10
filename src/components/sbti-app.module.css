@@ -642,205 +642,15 @@
   margin-top: 18px;
 }
 
-.sharePanel {
-  align-items: stretch;
-  background:
-    radial-gradient(circle at 76% 18%, rgba(217, 122, 51, 0.16), transparent 34%),
-    linear-gradient(135deg, rgba(14, 45, 38, 0.94), rgba(16, 62, 50, 0.88));
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 34px;
-  box-shadow: 0 30px 90px rgba(11, 34, 29, 0.22);
-  color: #fff;
-  display: grid;
-  gap: 20px;
-  grid-template-columns: minmax(0, 0.88fr) minmax(320px, 0.72fr);
-  overflow: hidden;
-  padding: 24px;
-}
-
-.sharePanelCopy {
-  align-self: center;
-  padding: 12px;
-}
-
-.sharePanelCopy .sectionEyebrow {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.16);
-  color: #f7d7b1;
-}
-
-.sharePanelCopy h3 {
-  font-family: var(--font-display), "Songti SC", "STSong", serif;
-  font-size: clamp(2rem, 4vw, 3.4rem);
-  letter-spacing: -0.04em;
-  line-height: 0.98;
-  margin-top: 16px;
-}
-
-.sharePanelCopy p {
-  color: rgba(255, 255, 255, 0.72);
-  line-height: 1.86;
-  margin-top: 16px;
-}
-
-.shareButtons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.sharePanel .secondaryButton {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
 .shareStatus {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(19, 100, 74, 0.08);
+  border: 1px solid rgba(19, 100, 74, 0.14);
   border-radius: 16px;
-  color: #fff;
+  color: var(--accent-strong);
   display: inline-flex;
-  padding: 10px 12px;
-}
-
-.shareCardPreview {
-  aspect-ratio: 4 / 5;
-  background:
-    radial-gradient(circle at 86% 8%, rgba(217, 122, 51, 0.22), transparent 28%),
-    radial-gradient(circle at 10% 92%, rgba(15, 77, 59, 0.18), transparent 32%),
-    linear-gradient(145deg, #fff6e8, #e9f2e8 54%, #fefcf8);
-  border: 1px solid rgba(255, 255, 255, 0.46);
-  border-radius: 34px;
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.26);
-  color: var(--ink);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 520px;
-  padding: 28px;
-  position: relative;
-  transform: rotate(1.5deg);
-}
-
-.shareCardTop {
-  color: var(--accent-strong);
-  display: flex;
-  font-size: 0.84rem;
-  font-weight: 700;
-  gap: 14px;
-  justify-content: space-between;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.shareCardBody {
-  align-items: center;
-  display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(0, 1fr) auto;
-  margin-top: 24px;
-}
-
-.shareCardBody strong {
-  display: block;
-  font-family: var(--font-display), "Songti SC", "STSong", serif;
-  font-size: clamp(3.2rem, 8vw, 5.2rem);
-  letter-spacing: -0.07em;
-  line-height: 0.88;
-}
-
-.shareCardBody span {
-  color: var(--muted);
-  display: block;
-  font-weight: 700;
-  margin-top: 12px;
-}
-
-.shareCardBody img {
-  background: rgba(255, 255, 255, 0.74);
-  border-radius: 24px;
-  object-fit: contain;
-  padding: 12px;
-}
-
-.shareCardPreview > p {
-  color: rgba(16, 35, 29, 0.8);
-  font-size: clamp(1.1rem, 2.6vw, 1.35rem);
-  font-weight: 700;
-  line-height: 1.56;
-  margin-top: 20px;
-}
-
-.shareTraitRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.shareTraitRow span {
-  background: rgba(15, 77, 59, 0.1);
-  border: 1px solid rgba(15, 77, 59, 0.14);
-  border-radius: 999px;
-  color: var(--accent-strong);
-  font-weight: 700;
-  padding: 10px 13px;
-}
-
-.shareShadow {
-  color: var(--muted);
-  font-size: 0.95rem;
   line-height: 1.6;
-  margin-top: 18px;
-}
-
-.shareCardFooter {
-  align-items: center;
-  display: flex;
-  gap: 18px;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-.shareCardCallout {
-  min-width: 0;
-}
-
-.shareCardCallout strong {
-  color: #10231d;
-  display: block;
-  font-size: 1rem;
-  line-height: 1.4;
-}
-
-.shareCardCallout span {
-  color: rgba(16, 35, 29, 0.58);
-  display: block;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.88rem;
-  margin-top: 8px;
-  word-break: break-all;
-}
-
-.shareQrBox {
-  align-items: center;
-  background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(15, 77, 59, 0.14);
-  border-radius: 24px;
-  display: flex;
-  flex: 0 0 auto;
-  height: 136px;
-  justify-content: center;
-  padding: 10px;
-  width: 136px;
-}
-
-.shareQrImage {
-  display: block;
-  height: 100%;
-  width: 100%;
+  margin-top: 16px;
+  padding: 10px 12px;
 }
 
 .formulaBox {
@@ -955,7 +765,6 @@
 @media (max-width: 1100px) {
   .hero,
   .resultHero,
-  .sharePanel,
   .introGrid,
   .resultGrid {
     grid-template-columns: 1fr;
@@ -1087,9 +896,7 @@
   .heroActions .primaryButton,
   .heroActions .secondaryButton,
   .resultActions .primaryButton,
-  .resultActions .secondaryButton,
-  .shareButtons .primaryButton,
-  .shareButtons .secondaryButton {
+  .resultActions .secondaryButton {
     width: 100%;
   }
 
@@ -1107,15 +914,6 @@
     min-height: 320px;
   }
 
-  .sharePanel {
-    border-radius: 26px;
-    padding: 16px;
-  }
-
-  .shareCardPreview {
-    min-height: 460px;
-    transform: none;
-  }
 }
 
 @media (max-width: 520px) {
