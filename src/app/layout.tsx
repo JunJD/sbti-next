@@ -20,8 +20,8 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SBTI 人格测试 · Next.js 重写版",
-  description: "本地还原 SBTI 题库、评分算法、隐藏人格分支和结果海报的移动端友好版本。",
+  title: "SBTI 人格测试",
+  description: "31 道题测出你的电子人格，支持结果卡分享、相近人格对比和十五维画像。",
 };
 
 export const viewport: Viewport = {

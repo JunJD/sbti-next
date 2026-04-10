@@ -15,6 +15,7 @@ import {
 } from "@/lib/sbti-data";
 import {
   QUIZ_META,
+  buildInitialQuestionDeck,
   buildQuestionDeck,
   computeResult,
   countAnsweredQuestions,
@@ -31,9 +32,10 @@ const SHARE_CARD_URL = "https://sbti.green";
 
 let shareCardQrCodePromise: Promise<string> | null = null;
 
-function getShareCardQrCode() {
-  if (!shareCardQrCodePromise) {
-    shareCardQrCodePromise = QRCode.toDataURL(SHARE_CARD_URL, {
+function getShareCardQrCode(): Promise<string> {
+  const qrCodePromise =
+    shareCardQrCodePromise ??
+    QRCode.toDataURL(SHARE_CARD_URL, {
       color: {
         dark: "#10362d",
         light: "#ffffffff",
@@ -42,9 +44,10 @@ function getShareCardQrCode() {
       margin: 1,
       width: 256,
     });
-  }
 
-  return shareCardQrCodePromise;
+  shareCardQrCodePromise = qrCodePromise;
+
+  return qrCodePromise;
 }
 
 function trimDimensionName(name: string) {
@@ -283,7 +286,9 @@ function isSpecialQuestion(question: QuizDeckQuestion) {
 
 export function SbtiApp() {
   const [stage, setStage] = useState<Stage>("quiz");
-  const [questionDeck, setQuestionDeck] = useState<QuizDeckQuestion[]>(() => buildQuestionDeck());
+  const [questionDeck, setQuestionDeck] = useState<QuizDeckQuestion[]>(() =>
+    buildInitialQuestionDeck(),
+  );
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [shareStatus, setShareStatus] = useState("");
   const [shareCardQrCode, setShareCardQrCode] = useState<string | null>(null);
@@ -305,16 +310,16 @@ export function SbtiApp() {
   const result = stage === "result" ? computeResult(answers) : null;
   const heroTitle =
     stage === "intro"
-      ? "把 sbti.unun.dev 的题库、算法和结果图重写成本地 Next.js 版。"
+      ? "测完就知道，你的电子人格更像谁。"
       : stage === "quiz"
         ? "进来直接测，做完再看结果。"
-        : "结果已经生成，算法和海报都在下面。";
+        : "结果已经生成，看看你是哪一种电子人格。";
   const heroLead =
     stage === "intro"
-      ? "公开页面里的评分脚本已经完整拆出来了。现在这版保留原题库、原匹配逻辑、酒鬼隐藏分支和 HHHH 兜底规则，同时把交互重做成更适合手机单手操作的流程。"
+      ? "31 道题，做完立刻出结果。你会拿到主人格、相近人格、十五维画像，以及一张适合直接转发的结果卡。"
       : stage === "quiz"
-        ? "31 道题直接开答，题目会随机排序；做完就能看到结果、海报和二维码分享卡。"
-        : "结果页保留原结果文案和海报，并把分数算法、Top 匹配和十五维解释一起展开。";
+        ? "31 道题直接开答，题目顺序已打乱；做完就能看到人格结果、相近人格和分享卡。"
+        : "这页会给你主人格、相近人格、十五维画像和一张适合转发的结果卡。";
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -461,7 +466,7 @@ export function SbtiApp() {
         <section className={styles.shell}>
         <header className={`${styles.hero} ${stage !== "intro" ? styles.heroCompact : ""}`}>
           <div className={styles.heroContent}>
-            <p className={styles.eyebrow}>SBTI Local Rewrite</p>
+            <p className={styles.eyebrow}>SBTI 人格测试</p>
             <h1>{heroTitle}</h1>
             <p className={styles.heroLead}>{heroLead}</p>
 
@@ -490,9 +495,9 @@ export function SbtiApp() {
                 <p>按 15 维模式做距离排序。</p>
               </div>
               <div className={styles.metricCard}>
-                <span>本地海报</span>
+                <span>分享卡</span>
                 <strong>{QUIZ_META.imageCount}</strong>
-                <p>外站结果图已全部落到本地资源。</p>
+                <p>可直接保存、分享或转发。</p>
               </div>
             </div>
           ) : null}
@@ -501,38 +506,38 @@ export function SbtiApp() {
         {stage === "intro" ? (
           <section className={styles.introGrid}>
             <article className={styles.panel}>
-              <p className={styles.sectionEyebrow}>Why It Spreads</p>
-              <h2>它爆火不是因为准，是因为适合被晒</h2>
+              <p className={styles.sectionEyebrow}>测什么</p>
+              <h2>31 道题，快速摸一摸你的电子人格</h2>
               <ul className={styles.factList}>
-                <li>第一性原理：社交传播需要一个低成本的“我是谁”符号。</li>
-                <li>它用四五个大写字母把复杂自我压缩成可截图的人设。</li>
-                <li>文案带一点冒犯但不真正伤人，刚好触发“笑着认领”。</li>
-                <li>结果不是绝对判决，而是可争辩的话题，适合拉朋友下场。</li>
+                <li>题目覆盖自我、情感、态度、行动和社交五组维度。</li>
+                <li>每个维度用两道题累计分数，再汇总成最终人格。</li>
+                <li>中途可能出现隐藏补充题，结果也可能被它改写。</li>
+                <li>整体更像一场带梗的性格娱乐测试，适合和朋友一起玩。</li>
               </ul>
             </article>
 
             <article className={styles.panel}>
-              <p className={styles.sectionEyebrow}>Target Boost</p>
-              <h2>目标群体是爱发截图的高表达用户</h2>
+              <p className={styles.sectionEyebrow}>会得到什么</p>
+              <h2>结果不只给标签，也会告诉你像在哪里</h2>
               <p className={styles.panelText}>
-                核心用户不是来做心理诊断的，而是想获得一个“可转发、可吐槽、可被朋友评价”的
-                社交物件。所以结果页要先服务截图和转发，其次才服务解释。
+                除了主人格，你还会看到最接近的相似人格和十五维解释，方便拿去对照、吐槽，
+                也方便直接发给朋友，让他们看看系统说得像不像。
               </p>
               <div className={styles.assetPreview}>
-                <span className={styles.assetChip}>朋友圈图</span>
-                <span className={styles.assetChip}>群聊挑衅</span>
-                <span className={styles.assetChip}>二测动机</span>
-                <span className={styles.assetChip}>结果争辩</span>
+                <span className={styles.assetChip}>主人格</span>
+                <span className={styles.assetChip}>相近人格</span>
+                <span className={styles.assetChip}>十五维画像</span>
+                <span className={styles.assetChip}>分享卡</span>
               </div>
             </article>
 
             <article className={styles.panel}>
-              <p className={styles.sectionEyebrow}>What We Upgrade</p>
-              <h2>弱点是分享太弱，所以结果页要变成传播页</h2>
+              <p className={styles.sectionEyebrow}>怎么分享</p>
+              <h2>做完先看结果卡，再决定要不要继续细看</h2>
               <ul className={styles.factList}>
-                <li>先给可发朋友圈的竖版结果卡，再给详细说明。</li>
-                <li>一键复制文案、系统分享、下载 PNG，减少分享摩擦。</li>
-                <li>算法不装专业诊断，只公开向量、距离和影子人格，让它“显得更可解释”。</li>
+                <li>先给适合发朋友圈的竖版结果卡，再补充详细解释。</li>
+                <li>支持下载图片、复制文案和系统分享，转发成本更低。</li>
+                <li>想认真看时，也能继续展开相近人格和十五维说明。</li>
               </ul>
             </article>
           </section>
@@ -543,7 +548,7 @@ export function SbtiApp() {
             <div className={styles.progressCard} data-quiz-progress>
               <div className={styles.progressHeader}>
                 <div className={styles.progressCopy}>
-                  <p className={styles.sectionEyebrow}>Blind Quiz</p>
+                  <p className={styles.sectionEyebrow}>开始作答</p>
                   <h2>题目已洗牌，维度默认隐藏</h2>
                   <p className={styles.progressSummary}>
                     {canSubmit ? "所有可见题都已完成" : `还差 ${remainingCount} 题`}
@@ -664,7 +669,7 @@ export function SbtiApp() {
                       src={result.finalType.imageSrc}
                     />
                   ) : (
-                    <div className={styles.posterFallback}>No Poster</div>
+                    <div className={styles.posterFallback}>暂无结果图</div>
                   )}
                 </div>
                 <p className={styles.posterCaption}>{result.finalType.intro}</p>
@@ -699,7 +704,7 @@ export function SbtiApp() {
 
             <article className={styles.sharePanel}>
               <div className={styles.sharePanelCopy}>
-                <p className={styles.sectionEyebrow}>Share Card</p>
+                <p className={styles.sectionEyebrow}>分享卡</p>
                 <h3>朋友圈专用卡片</h3>
                 <p>
                   这张不是详情页截图，而是重新排版过的社交卡：大字人格、匹配度、三个人格标签、
@@ -769,7 +774,7 @@ export function SbtiApp() {
 
             <div className={styles.resultGrid}>
               <article className={styles.panel}>
-                <p className={styles.sectionEyebrow}>算法公开版</p>
+                <p className={styles.sectionEyebrow}>结果说明</p>
                 <h3>分数怎么走到人格结果</h3>
                 <ul className={styles.factList}>
                   <li>只统计 30 道常规题；喝酒题只负责触发隐藏分支，不参与 15 维加总。</li>
@@ -783,12 +788,12 @@ export function SbtiApp() {
                   <li>系统按逐维绝对差求总距离，距离越小越靠前；完全相同的维度越多越优先。</li>
                 </ul>
                 <div className={styles.formulaBox}>
-                  similarity = round((1 - distance / 30) * 100)
+                  匹配度 = round((1 - 总距离 / 30) * 100)
                 </div>
               </article>
 
               <article className={styles.panel}>
-                <p className={styles.sectionEyebrow}>Top 3</p>
+                <p className={styles.sectionEyebrow}>相近人格</p>
                 <h3>最接近的常规人格</h3>
                 <div className={styles.matchList}>
                   {result.ranked.slice(0, 3).map((match) => (
@@ -831,8 +836,8 @@ export function SbtiApp() {
 
             <article className={styles.noteCard}>
               <p>
-                这套测试仍然只是娱乐产品。现在的区别只是算法和资源都已经被本地还原，
-                结果更透明，体验也更顺手，不代表它突然变成了严肃心理测量工具。
+                这套测试更适合拿来娱乐、聊天和互相吐槽，不是严肃心理诊断。结果可以参考，
+                但不用太当真。
               </p>
             </article>
           </section>

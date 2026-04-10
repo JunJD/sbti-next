@@ -38,6 +38,8 @@ export type QuizResult = {
   sub: string;
 };
 
+type RandomSource = () => number;
+
 const LEVEL_TO_NUMBER: Record<DimensionLevel, number> = {
   L: 1,
   M: 2,
@@ -61,26 +63,40 @@ function resolveType(code: TypeCode) {
   };
 }
 
-function shuffleRegularQuestions() {
+function createSeededRandom(seed: number): RandomSource {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), seed | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleRegularQuestions(random: RandomSource) {
   const shuffled = [...questions];
 
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const swapIndex = Math.floor(random() * (index + 1));
     [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
   }
 
   return shuffled;
 }
 
-export function buildQuestionDeck(): QuizDeckQuestion[] {
-  const shuffledRegular = shuffleRegularQuestions();
-  const insertIndex = Math.floor(Math.random() * shuffledRegular.length) + 1;
+export function buildQuestionDeck(random: RandomSource = Math.random): QuizDeckQuestion[] {
+  const shuffledRegular = shuffleRegularQuestions(random);
+  const insertIndex = Math.floor(random() * shuffledRegular.length) + 1;
 
   return [
     ...shuffledRegular.slice(0, insertIndex),
     specialQuestions[0],
     ...shuffledRegular.slice(insertIndex),
   ];
+}
+
+export function buildInitialQuestionDeck(): QuizDeckQuestion[] {
+  return buildQuestionDeck(createSeededRandom(0x53425449));
 }
 
 export function getVisibleQuestions(
