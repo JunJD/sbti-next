@@ -291,7 +291,6 @@ export function SbtiApp() {
   );
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [shareStatus, setShareStatus] = useState("");
-  const [shareCardQrCode, setShareCardQrCode] = useState<string | null>(null);
 
   const visibleQuestions = getVisibleQuestions(questionDeck, answers);
   const answeredCount = countAnsweredQuestions(visibleQuestions, answers);
@@ -316,39 +315,13 @@ export function SbtiApp() {
         : "结果已经生成，看看你是哪一种电子人格。";
   const heroLead =
     stage === "intro"
-      ? "31 道题，做完立刻出结果。你会拿到主人格、相近人格、十五维画像，以及一张适合直接转发的结果卡。"
+      ? "31 道题，做完立刻出结果。你会拿到主人格、相近人格、十五维画像，并且可以直接一键分享。"
       : stage === "quiz"
-        ? "31 道题直接开答，题目顺序已打乱；做完就能看到人格结果、相近人格和分享卡。"
-        : "这页会给你主人格、相近人格、十五维画像和一张适合转发的结果卡。";
+        ? "31 道题直接开答，题目顺序已打乱；做完就能看到人格结果、相近人格，并直接一键分享。"
+        : "这页会给你主人格、相近人格、十五维画像，并支持直接分享结果。";
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [stage]);
-
-  useEffect(() => {
-    if (stage !== "result") {
-      return;
-    }
-
-    let active = true;
-
-    async function prepareShareCardQrCode() {
-      try {
-        const dataUrl = await getShareCardQrCode();
-
-        if (active) {
-          setShareCardQrCode(dataUrl);
-        }
-      } catch (error) {
-        console.error("Failed to create share QR code.", error);
-      }
-    }
-
-    void prepareShareCardQrCode();
-
-    return () => {
-      active = false;
-    };
   }, [stage]);
 
   function startQuiz() {
@@ -403,31 +376,6 @@ export function SbtiApp() {
       behavior: "smooth",
       top: Math.max(0, questionTop - progressBottom - 16),
     });
-  }
-
-  async function copyShareText() {
-    if (!result) {
-      return;
-    }
-
-    await navigator.clipboard.writeText(getShareText(result));
-    setShareStatus("分享文案已复制，可以直接粘到朋友圈/群聊。");
-  }
-
-  async function downloadShareCard() {
-    if (!result) {
-      return;
-    }
-
-    setShareStatus("正在生成分享卡...");
-    const blob = await createShareCardBlob(result);
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.download = `sbti-${result.finalType.code.replace(/[^a-z0-9-]/gi, "")}.png`;
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
-    setShareStatus("分享卡已生成，发朋友圈时直接选这张图。");
   }
 
   async function shareResult() {
@@ -495,9 +443,9 @@ export function SbtiApp() {
                 <p>按 15 维模式做距离排序。</p>
               </div>
               <div className={styles.metricCard}>
-                <span>分享卡</span>
+                <span>结果图</span>
                 <strong>{QUIZ_META.imageCount}</strong>
-                <p>可直接保存、分享或转发。</p>
+                <p>分享时会自动带上对应结果图。</p>
               </div>
             </div>
           ) : null}
@@ -527,16 +475,16 @@ export function SbtiApp() {
                 <span className={styles.assetChip}>主人格</span>
                 <span className={styles.assetChip}>相近人格</span>
                 <span className={styles.assetChip}>十五维画像</span>
-                <span className={styles.assetChip}>分享卡</span>
+                <span className={styles.assetChip}>一键分享</span>
               </div>
             </article>
 
             <article className={styles.panel}>
               <p className={styles.sectionEyebrow}>怎么分享</p>
-              <h2>做完先看结果卡，再决定要不要继续细看</h2>
+              <h2>做完直接分享，也可以继续往下细看</h2>
               <ul className={styles.factList}>
-                <li>先给适合发朋友圈的竖版结果卡，再补充详细解释。</li>
-                <li>支持下载图片、复制文案和系统分享，转发成本更低。</li>
+                <li>结果页顶部保留一键分享，直接调用系统分享能力。</li>
+                <li>支持的浏览器会优先带上结果图，不支持时会自动改成复制文案。</li>
                 <li>想认真看时，也能继续展开相近人格和十五维说明。</li>
               </ul>
             </article>
@@ -699,78 +647,9 @@ export function SbtiApp() {
                     再测一次
                   </button>
                 </div>
+                {shareStatus ? <p className={styles.shareStatus}>{shareStatus}</p> : null}
               </article>
             </div>
-
-            <article className={styles.sharePanel}>
-              <div className={styles.sharePanelCopy}>
-                <p className={styles.sectionEyebrow}>分享卡</p>
-                <h3>朋友圈专用卡片</h3>
-                <p>
-                  这张不是详情页截图，而是重新排版过的社交卡：大字人格、匹配度、三个人格标签、
-                  影子人格和一句可传播文案。朋友圈发图优先，群聊再补文案。
-                </p>
-                <div className={styles.shareButtons}>
-                  <button className={styles.primaryButton} onClick={downloadShareCard} type="button">
-                    下载分享图
-                  </button>
-                  <button className={styles.secondaryButton} onClick={copyShareText} type="button">
-                    复制文案
-                  </button>
-                </div>
-                {shareStatus ? <p className={styles.shareStatus}>{shareStatus}</p> : null}
-              </div>
-
-              <div className={styles.shareCardPreview} aria-label="朋友圈分享卡预览">
-                <div className={styles.shareCardTop}>
-                  <span>SBTI 电子人格报告</span>
-                  <span>{result.badge}</span>
-                </div>
-                <div className={styles.shareCardBody}>
-                  <div>
-                    <strong>{result.finalType.code}</strong>
-                    <span>（{result.finalType.cn}）</span>
-                  </div>
-                  {result.finalType.imageSrc ? (
-                    <Image
-                      alt={`${result.finalType.code} 分享卡预览`}
-                      height={188}
-                      src={result.finalType.imageSrc}
-                      width={188}
-                    />
-                  ) : null}
-                </div>
-                <p>{result.finalType.intro}</p>
-                <div className={styles.shareTraitRow}>
-                  {getSignatureTraits(result).map((trait) => (
-                    <span key={trait}>{trait}</span>
-                  ))}
-                </div>
-                {result.ranked[1] ? (
-                  <p className={styles.shareShadow}>
-                    影子人格：{result.ranked[1].code}（{result.ranked[1].cn}）
-                  </p>
-                ) : null}
-                <div className={styles.shareCardFooter}>
-                  <div className={styles.shareCardCallout}>
-                    <strong>扫码测同款人格</strong>
-                    <span>{SHARE_CARD_URL}</span>
-                  </div>
-                  <div className={styles.shareQrBox}>
-                    {shareCardQrCode ? (
-                      <Image
-                        alt="扫码打开 sbti.green"
-                        className={styles.shareQrImage}
-                        height={120}
-                        src={shareCardQrCode}
-                        unoptimized
-                        width={120}
-                      />
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </article>
 
             <div className={styles.resultGrid}>
               <article className={styles.panel}>
