@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import QRCode from "qrcode";
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 
 import { ClickSpark } from "@/components/react-bits/click-spark";
 import styles from "./sbti-app.module.css";
@@ -77,6 +77,32 @@ function getShareText(result: QuizResult) {
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+function getShareCardFileName(result: QuizResult) {
+  return `sbti-${result.finalType.code.replace(/[^a-z0-9-]/gi, "")}.png`;
+}
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.download = fileName;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+async function copyShareTextToClipboard(text: string) {
+  if (!navigator.clipboard) {
+    return false;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function wrapCanvasText(
@@ -291,6 +317,7 @@ export function SbtiApp() {
   );
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [shareStatus, setShareStatus] = useState("");
+  const shareActionsRef = useRef<HTMLDivElement | null>(null);
 
   const visibleQuestions = getVisibleQuestions(questionDeck, answers);
   const answeredCount = countAnsweredQuestions(visibleQuestions, answers);
@@ -321,7 +348,29 @@ export function SbtiApp() {
         : "这页会给你主人格、相近人格、十五维画像，并支持直接分享结果。";
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (stage !== "result") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      const shareActions = shareActionsRef.current;
+
+      if (!shareActions) {
+        return;
+      }
+
+      const top = shareActions.getBoundingClientRect().top + window.scrollY - 24;
+
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: "smooth",
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
   }, [stage]);
 
   function startQuiz() {
@@ -383,26 +432,46 @@ export function SbtiApp() {
       return;
     }
 
-    const text = getShareText(result);
-    const title = `我的 SBTI：${result.finalType.code}（${result.finalType.cn}）`;
+    try {
+      setShareStatus("正在准备分享图...");
 
-    if (navigator.share) {
+      const text = getShareText(result);
+      const title = `我的 SBTI：${result.finalType.code}（${result.finalType.cn}）`;
       const blob = await createShareCardBlob(result);
-      const file = new File([blob], "sbti-share-card.png", { type: "image/png" });
+      const fileName = getShareCardFileName(result);
+      const file = new File([blob], fileName, { type: "image/png" });
 
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], text, title });
-        setShareStatus("已唤起系统分享。");
-        return;
+      if (navigator.share) {
+        try {
+          const shareData = { files: [file], text, title };
+
+          if (!navigator.canShare || navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            setShareStatus("已唤起系统分享。");
+            return;
+          }
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            setShareStatus("已取消分享。");
+            return;
+          }
+
+          console.error("Failed to share result image.", error);
+        }
       }
 
-      await navigator.share({ text, title });
-      setShareStatus("已唤起系统分享。");
-      return;
-    }
+      downloadBlob(blob, fileName);
+      const copied = await copyShareTextToClipboard(text);
 
-    await navigator.clipboard.writeText(text);
-    setShareStatus("当前浏览器不支持系统分享，已改为复制文案。");
+      setShareStatus(
+        copied
+          ? "当前浏览器不支持直接分享，已下载结果图并复制文案。"
+          : "当前浏览器不支持直接分享，已下载结果图。",
+      );
+    } catch (error) {
+      console.error("Failed to prepare share result.", error);
+      setShareStatus("生成分享图失败，请稍后重试。");
+    }
   }
 
   return (
@@ -484,7 +553,7 @@ export function SbtiApp() {
               <h2>做完直接分享，也可以继续往下细看</h2>
               <ul className={styles.factList}>
                 <li>结果页顶部保留一键分享，直接调用系统分享能力。</li>
-                <li>支持的浏览器会优先带上结果图，不支持时会自动改成复制文案。</li>
+                <li>支持的浏览器会直接分享结果图，不支持时会自动下载结果图并补上文案。</li>
                 <li>想认真看时，也能继续展开相近人格和十五维说明。</li>
               </ul>
             </article>
@@ -639,7 +708,7 @@ export function SbtiApp() {
                 ) : null}
                 <p className={styles.resultDescription}>{result.finalType.desc}</p>
 
-                <div className={styles.resultActions}>
+                <div className={styles.resultActions} ref={shareActionsRef}>
                   <button className={styles.primaryButton} onClick={shareResult} type="button">
                     一键分享
                   </button>

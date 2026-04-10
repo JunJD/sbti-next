@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Noto_Sans_SC, Noto_Serif_SC } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
 
 const notoSansSc = Noto_Sans_SC({
@@ -38,7 +39,10 @@ export default function RootLayout({
       lang="zh-CN"
       className={`${notoSansSc.variable} ${notoSerifSc.variable} ${jetBrainsMono.variable}`}
     >
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+      {children}
+      <Analytics />
+      </body>
     </html>
   );
 }
