@@ -944,22 +944,4 @@
     flex-direction: column;
   }
 
-  .shareCardBody {
-    grid-template-columns: 1fr;
-  }
-
-  .shareCardBody img {
-    height: 150px;
-    width: 150px;
-  }
-
-  .shareCardFooter {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .shareQrBox {
-    height: 120px;
-    width: 120px;
-  }
 }
