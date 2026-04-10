@@ -282,7 +282,7 @@ function isSpecialQuestion(question: QuizDeckQuestion) {
 }
 
 export function SbtiApp() {
-  const [stage, setStage] = useState<Stage>("intro");
+  const [stage, setStage] = useState<Stage>("quiz");
   const [questionDeck, setQuestionDeck] = useState<QuizDeckQuestion[]>(() => buildQuestionDeck());
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [shareStatus, setShareStatus] = useState("");
@@ -307,13 +307,13 @@ export function SbtiApp() {
     stage === "intro"
       ? "把 sbti.unun.dev 的题库、算法和结果图重写成本地 Next.js 版。"
       : stage === "quiz"
-        ? "盲测进行中，先别看维度。"
+        ? "进来直接测，做完再看结果。"
         : "结果已经生成，算法和海报都在下面。";
   const heroLead =
     stage === "intro"
       ? "公开页面里的评分脚本已经完整拆出来了。现在这版保留原题库、原匹配逻辑、酒鬼隐藏分支和 HHHH 兜底规则，同时把交互重做成更适合手机单手操作的流程。"
       : stage === "quiz"
-        ? "题目会随机排序，隐藏喝酒分支会按选择动态插入。顶部进度和底部提交区会跟着你滚动。"
+        ? "31 道题直接开答，题目会随机排序；做完就能看到结果、海报和二维码分享卡。"
         : "结果页保留原结果文案和海报，并把分数算法、Top 匹配和十五维解释一起展开。";
 
   useEffect(() => {
@@ -352,15 +352,6 @@ export function SbtiApp() {
       setAnswers({});
       setShareStatus("");
       setStage("quiz");
-    });
-  }
-
-  function backToIntro() {
-    startTransition(() => {
-      setAnswers({});
-      setQuestionDeck(buildQuestionDeck());
-      setShareStatus("");
-      setStage("intro");
     });
   }
 
@@ -476,13 +467,8 @@ export function SbtiApp() {
 
             <div className={styles.heroActions}>
               <button className={styles.primaryButton} onClick={startQuiz} type="button">
-                {stage === "intro" ? "开始盲测" : "重新洗牌再测"}
+                {stage === "intro" ? "开始盲测" : answeredCount > 0 ? "重新洗牌再测" : "重新洗牌"}
               </button>
-              {stage !== "intro" ? (
-                <button className={styles.secondaryButton} onClick={backToIntro} type="button">
-                  返回首页
-                </button>
-              ) : null}
             </div>
           </div>
 
@@ -706,9 +692,6 @@ export function SbtiApp() {
                   </button>
                   <button className={styles.primaryButton} onClick={startQuiz} type="button">
                     再测一次
-                  </button>
-                  <button className={styles.secondaryButton} onClick={backToIntro} type="button">
-                    返回首页
                   </button>
                 </div>
               </article>
